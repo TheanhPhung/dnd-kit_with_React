@@ -1,44 +1,36 @@
-import { useState, useEffect } from "react"
-
-import Tasks from "./Tasks"
+import { useEffect, useState } from "react"
 
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 
-export default function Task({ task, spaceLevel, isSortingTasks, draggingLevel, setDraggingLevel }) {
+import Tasks from "./Tasks"
+
+export default function Task({ task, section, tasks, setTasks, spaceLevel, activeLevel, setActiveLevel, activeId }) {
+
 	const {
 		attributes,
 		listeners,
 		setNodeRef,
 		transform,
 		transition,
-		isDragging
+		isDragging,
 	} = useSortable({
 		id: task.id
-	})
+	});
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
 	}
 
-	useEffect(() => {
-		console.log("Task: ", task.title, " - Space level: ", spaceLevel, " - Dragging level: ", draggingLevel);
-	}, []);
-
-	useEffect(() => {
-		if (isDragging) {
-			setDraggingLevel(spaceLevel);
-		}
-	}, []);
-
-	const TaskMarkup = () => {
+	const TaskMarkup = ({ task }) => {
 		return (
 			<>
-				<div 
+				<div
+					className={`${spaceLevel=== 1 && "mt-2"}`}
 					style={{
 						display: "grid",
-						gridTemplateColumns: "repeat(20, 1fr)"
+						gridTemplateColumns: "repeat(20, 1fr)",
 					}}
 				>
 					<div 
@@ -51,25 +43,31 @@ export default function Task({ task, spaceLevel, isSortingTasks, draggingLevel, 
 						{task.title}
 					</div>
 				</div>
-				{(!draggingLevel || spaceLevel < draggingLevel) &&
-					<Tasks 
-						parent={task} 
-						spaceLevel={spaceLevel + 1} 
-						isSortingTasks={isSortingTasks} 
-					/>
-				}
+				<Tasks 
+					parent={task} 
+					section={section} 
+					tasks={tasks} 
+					setTasks={setTasks} 
+					spaceLevel={spaceLevel + 1}
+					activeLevel={activeLevel}
+					setActiveLevel={setActiveLevel}
+					activeId={activeId}
+				/>
 			</>
 		)
 	}
 
 	return (
 		<div
+			className={isDragging ? "opacity-50" : null}
 			ref={setNodeRef}
 			style={style}
 			{...attributes}
 			{...listeners}
 		>
-			{TaskMarkup()}
+			{activeLevel && spaceLevel > activeLevel ? null :
+				<TaskMarkup task={task} />
+			}
 		</div>
 	)
 }

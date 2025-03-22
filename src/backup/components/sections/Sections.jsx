@@ -7,10 +7,16 @@ import Section from "./Section"
 
 export default function Sections({ sections, setSections, tasks, setTasks }) {
 
-	const [hideTasks, setHideTasks] = useState(false);
 	const [activeId, setActiveId] = useState(null);
+	const [hideTasks, setHideTasks] = useState(false);
 
-	const SectionsMarkup = ({ sections }) => {
+	useEffect(() => {
+		setSections(prevSections => 
+			prevSections.sort((a, b) => a.order - b.order)
+		)
+	}, [])
+
+	const SectionsMarkup = () => {
 		return sections.map(section => 
 			<Section 
 				key={`section-${section.id}`} 
@@ -18,52 +24,56 @@ export default function Sections({ sections, setSections, tasks, setTasks }) {
 				tasks={tasks}
 				setTasks={setTasks}
 				hideTasks={hideTasks}
-				setHideTasks={setHideTasks}
 			/>
 		)
 	}
 
 	function handleDragStart(event) {
 		setActiveId(event.active.id);
+		setHideTasks(true);
 	}
 
-	function moveSection(event) {
+	function handleDragEnd(event) {
 		setActiveId(null);
+		setHideTasks(false);
 
 		const { active, over } = event;
 
-		if (active.id !== over.id) {
-			setSections(prevSections => {
-				const oldIndex = prevSections.findIndex(section => section.id === active.id);
-				const newIndex = prevSections.findIndex(section => section.id === over.id);
+		if (!over || !over.id || active.id === over.id) return;
+		
+		setSections(prevSections => {
+			const oldIndex = prevSections.findIndex(section => section.id === active.id);
+			const newIndex = prevSections.findIndex(section => section.id === over.id);
 
-				const newSections = arrayMove(prevSections, oldIndex, newIndex);
+			const newSections = arrayMove(prevSections, oldIndex, newIndex);
 
-				return newSections.map((section, index) => ({
-					...section,
-					order: index
-				}))
-			})
-		}
+			return newSections.map((section, index) => ({
+				...section,
+				order: index
+			}))
+		})
 	}
 
 	return (
-		<DndContext onDragStart={handleDragStart} onDragEnd={moveSection}>
+		<DndContext 
+			onDragStart={handleDragStart}
+			onDragEnd={handleDragEnd}
+		>
 			<SortableContext items={sections.map(section => section.id)}>
-				<SectionsMarkup sections={sections} />
+				{SectionsMarkup()}
 			</SortableContext>
 
-			{activeId &&
-				<DragOverlay>
-					<Section
+			<DragOverlay>
+				{activeId ? (
+					<Section 
 						section={sections.find(section => section.id === activeId)}
 						tasks={tasks}
 						setTasks={setTasks}
 						hideTasks={hideTasks}
-						setHideTasks={setHideTasks}
+						isOpacity={true}
 					/>
-				</DragOverlay>
-			}
+				) : null}
+			</DragOverlay>
 		</DndContext>
 	)
 }
