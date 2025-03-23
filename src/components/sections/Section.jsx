@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react"
 
-import { useDndMonitor } from "@dnd-kit/core"
+import { DndContext, useDndMonitor } from "@dnd-kit/core"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 
 import Tasks from "../tasks/Tasks"
 
-export default function Section({ section, tasks, setTasks, hideTasks, setHideTasks }) {
+export default function Section({ section, tasks, setTasks, hideTasks, setHideTasks, isMountTask }) {
 
 	const {
 		attributes,
@@ -38,6 +38,7 @@ export default function Section({ section, tasks, setTasks, hideTasks, setHideTa
 							tasks={tasks}
 							setTasks={setTasks}
 							spaceLevel={1}
+							isMountTask={isMountTask}
 						/>
 					}
 				</div>

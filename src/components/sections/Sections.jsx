@@ -5,7 +5,7 @@ import { SortableContext, arrayMove } from "@dnd-kit/sortable"
 
 import Section from "./Section"
 
-export default function Sections({ sections, setSections, tasks, setTasks }) {
+export default function Sections({ sections, setSections, tasks, setTasks, isMountTask }) {
 
 	const [hideTasks, setHideTasks] = useState(false);
 	const [activeId, setActiveId] = useState(null);
@@ -19,6 +19,7 @@ export default function Sections({ sections, setSections, tasks, setTasks }) {
 				setTasks={setTasks}
 				hideTasks={hideTasks}
 				setHideTasks={setHideTasks}
+				isMountTask={isMountTask}
 			/>
 		)
 	}
@@ -61,6 +62,7 @@ export default function Sections({ sections, setSections, tasks, setTasks }) {
 						setTasks={setTasks}
 						hideTasks={hideTasks}
 						setHideTasks={setHideTasks}
+						isMountTask={isMountTask}
 					/>
 				</DragOverlay>
 			}

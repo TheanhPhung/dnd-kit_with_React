@@ -26,13 +26,38 @@ function App() {
     { id: 3, title: "Section C", order: 2 },
   ]);  
 
-  useEffect(() => {
-    console.log("Sections: ", sections);
-  }, [sections]);
+  const [isMountTask, setIsMountTask] = useState(false);
+  const [isUnmountTask, setIsUnmountTask] = useState(false);
 
   useEffect(() => {
-    console.log("Tasks: ", tasks);
+    function handleKeyDown(event) {
+      if (event.key === "Shift") {
+        setIsMountTask(true);
+      }
+    }
+
+    function handleKeyUp(event) {
+      if (event.key === "Shift") {
+        setIsMountTask(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return (() => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    })
+  }, []);
+
+  useEffect(() => {
+    console.log(tasks);
   }, [tasks]);
+
+  useEffect(() => {
+    console.log(sections);
+  }, [sections]);
 
   return (
     <>
@@ -41,6 +66,7 @@ function App() {
         setSections={setSections}
         tasks={tasks}
         setTasks={setTasks}
+        isMountTask={isMountTask}
       />
     </>
   )

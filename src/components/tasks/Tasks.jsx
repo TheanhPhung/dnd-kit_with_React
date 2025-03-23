@@ -5,12 +5,13 @@ import { SortableContext, arrayMove } from "@dnd-kit/sortable"
 
 import Task from "./Task"
 
-export default function Tasks({ parent, section, tasks, setTasks, spaceLevel }) {
+export default function Tasks({ parent, section, tasks, setTasks, spaceLevel, isMountTask }) {
 	const [childTasks, setChildTasks] = useState([
 		...(tasks || []).filter(task => task.section === section.id && (parent ? task.parent === parent.id : !task.parent))
 	].sort((a, b) => a.order - b.order));
 
 	const [activeId, setActiveId] = useState(null);
+	const [draggingLevel, setDraggingLevel] = useState(null);
 
 	const TasksMarkup = ({childTasks}) => {
 		return childTasks.map(task => 
@@ -21,9 +22,10 @@ export default function Tasks({ parent, section, tasks, setTasks, spaceLevel }) 
 				tasks={tasks}
 				setTasks={setTasks}
 				spaceLevel={spaceLevel}
-				activeLevel={activeLevel}
-				setActiveLevel={setActiveLevel}
 				activeId={activeId}
+				draggingLevel={draggingLevel}
+				setDraggingLevel={setDraggingLevel}
+				isMountTask={isMountTask}
 			/>
 		)
 	}
@@ -37,47 +39,69 @@ export default function Tasks({ parent, section, tasks, setTasks, spaceLevel }) 
 
 		const { active, over } = event;
 
-		const activeTask = tasks.find(task => task.id === active.id);
-		const overTask = tasks.find(task => task.id === over.id);
+		if (active.id !== over.id) {
+			setTasks(prevTasks => {
+				const oldIndex = childTasks.findIndex(task => task.id === active.id);
+				const newIndex = childTasks.findIndex(task => task.id === over.id);
 
-		setTasks(prevTasks => {
-			const oldIndex = childTasks.findIndex(task => task.id === active.id);
-			const newIndex = childTasks.findIndex(task => task.id === over.id);
+				const newChildTasks = arrayMove(childTasks, oldIndex, newIndex).map((task, index) => ({
+					...task,
+					order: index
+				}));
 
-			const newChildTasks = arrayMove(childTasks, oldIndex, newIndex).map((task, index) => ({
-				...task,
-				order: index
-			}));
-
-			return prevTasks.map(task => {
-				const updateTask = newChildTasks.find(t => t.id === task.id);
-				return updateTask ? updateTask : task;
+				return prevTasks.map(task => {
+					const updateTask = newChildTasks.find(t => t.id === task.id);
+					return updateTask ? updateTask : task;
+				})
 			})
-		})
-
+		}
 	}
 
+	function mountTask(event) {
+		const { active, over } = event;
+
+		if (active.id !== over.id) {
+			setTasks(prevTasks => {
+				const dragTask = prevTasks.find(task => task.id === active.id);
+				const dropTask = prevTasks.find(task => task.id === over.id);
+
+				dragTask.parent = dropTask.id;
+				return prevTasks;
+			})
+		}
+	}
 
 	return (
-		<DndContext onDragStart={handleDragStart} onDragEnd={moveTask}>
-			<SortableContext items={childTasks.map(task => task.id)}>
-				<TasksMarkup childTasks={childTasks} /> 
-			</SortableContext>
+		<>
+			{!isMountTask && (
+				<DndContext onDragStart={handleDragStart} onDragEnd={moveTask}>
+					<SortableContext items={childTasks.map(task => task.id)}>
+						<TasksMarkup childTasks={childTasks} /> 
+					</SortableContext>
 
-			<DragOverlay>
-				{activeId && 
-					<Task
-						task={childTasks.find(task => task.id === activeId)}
-						section={section}
-						tasks={tasks}
-						setTasks={setTasks}
-						spaceLevel={spaceLevel}
-						activeLevel={activeLevel}
-						setActiveLevel={setActiveLevel}
-						activeId={activeId}
-					/>
-				}
-			</DragOverlay>
-		</DndContext>
+					<DragOverlay>
+						{activeId && 
+							<Task
+								task={childTasks.find(task => task.id === activeId)}
+								section={section}
+								tasks={tasks}
+								setTasks={setTasks}
+								spaceLevel={spaceLevel}
+								activeId={activeId}
+								draggingLevel={draggingLevel}
+								setDraggingLevel={setDraggingLevel}
+								isMountTask={isMountTask}
+							/>
+						}
+					</DragOverlay>
+				</DndContext>
+			)}
+
+			{isMountTask && (
+				<DndContext onDragEnd={mountTask}>
+					<TasksMarkup childTasks={childTasks} />
+				</DndContext>
+			)}
+		</>
 	)
 }
