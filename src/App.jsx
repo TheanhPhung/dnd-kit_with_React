@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
+import { DndContext } from "@dnd-kit/core"
 import Sections from "./components/sections/Sections"
 
 function App() {
@@ -27,18 +28,29 @@ function App() {
   ]);  
 
   const [isMountTask, setIsMountTask] = useState(false);
-  const [isUnmountTask, setIsUnmountTask] = useState(false);
+  const [isChangeSection, setIsChangeSection] = useState(false);
 
   useEffect(() => {
     function handleKeyDown(event) {
       if (event.key === "Shift") {
         setIsMountTask(true);
+        setIsChangeSection(false);
+      }
+
+      if (event.key === "Control") {
+        console.log("Control key!");
+        setIsMountTask(false);
+        setIsChangeSection(true);
       }
     }
 
     function handleKeyUp(event) {
       if (event.key === "Shift") {
         setIsMountTask(false);
+      }
+
+      if (event.key === "Control") {
+        setIsChangeSection(false);
       }
     }
 
@@ -52,23 +64,24 @@ function App() {
   }, []);
 
   useEffect(() => {
-    console.log(tasks);
-  }, [tasks]);
-
-  useEffect(() => {
-    console.log(sections);
-  }, [sections]);
+    if (isMountTask) {
+      console.log("Mounting task");
+    } else if (isChangeSection) {
+      console.log("Changing section");
+    } else {
+      console.log("Sorting");
+    }
+  }, [isMountTask, isChangeSection])
 
   return (
-    <>
       <Sections 
         sections={sections} 
         setSections={setSections}
         tasks={tasks}
         setTasks={setTasks}
         isMountTask={isMountTask}
+        isChangeSection={isChangeSection}
       />
-    </>
   )
 }
 

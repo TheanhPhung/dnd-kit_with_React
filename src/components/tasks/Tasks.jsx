@@ -2,10 +2,11 @@ import { useEffect, useState } from "react"
 
 import { DndContext, DragOverlay, useDndMonitor } from "@dnd-kit/core"
 import { SortableContext, arrayMove } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 import Task from "./Task"
 
-export default function Tasks({ parent, section, tasks, setTasks, spaceLevel, isMountTask }) {
+export default function Tasks({ parent, section, tasks, setTasks, spaceLevel, isMountTask, isChangeSection }) {
 	const [childTasks, setChildTasks] = useState([
 		...(tasks || []).filter(task => task.section === section.id && (parent ? task.parent === parent.id : !task.parent))
 	].sort((a, b) => a.order - b.order));
@@ -26,6 +27,7 @@ export default function Tasks({ parent, section, tasks, setTasks, spaceLevel, is
 				draggingLevel={draggingLevel}
 				setDraggingLevel={setDraggingLevel}
 				isMountTask={isMountTask}
+				isChangeSection={isChangeSection}
 			/>
 		)
 	}
@@ -73,7 +75,7 @@ export default function Tasks({ parent, section, tasks, setTasks, spaceLevel, is
 
 	return (
 		<>
-			{!isMountTask && (
+			{!isMountTask && !isChangeSection && (
 				<DndContext onDragStart={handleDragStart} onDragEnd={moveTask}>
 					<SortableContext items={childTasks.map(task => task.id)}>
 						<TasksMarkup childTasks={childTasks} /> 
@@ -91,6 +93,7 @@ export default function Tasks({ parent, section, tasks, setTasks, spaceLevel, is
 								draggingLevel={draggingLevel}
 								setDraggingLevel={setDraggingLevel}
 								isMountTask={isMountTask}
+								isChangeSection={isChangeSection}
 							/>
 						}
 					</DragOverlay>
@@ -98,10 +101,12 @@ export default function Tasks({ parent, section, tasks, setTasks, spaceLevel, is
 			)}
 
 			{isMountTask && (
-				<DndContext onDragEnd={mountTask}>
+				<DndContext onDragStart={() => {}} onDragEnd={mountTask}>
 					<TasksMarkup childTasks={childTasks} />
 				</DndContext>
 			)}
+
+			{isChangeSection && <TasksMarkup childTasks={childTasks} />}
 		</>
 	)
 }

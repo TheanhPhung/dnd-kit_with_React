@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 import { DndContext, DragOverlay } from "@dnd-kit/core"
 import { SortableContext, arrayMove } from "@dnd-kit/sortable"
 
 import Section from "./Section"
 
-export default function Sections({ sections, setSections, tasks, setTasks, isMountTask }) {
+export default function Sections({ sections, setSections, tasks, setTasks, isMountTask, isChangeSection }) {
 
 	const [hideTasks, setHideTasks] = useState(false);
 	const [activeId, setActiveId] = useState(null);
@@ -20,15 +20,16 @@ export default function Sections({ sections, setSections, tasks, setTasks, isMou
 				hideTasks={hideTasks}
 				setHideTasks={setHideTasks}
 				isMountTask={isMountTask}
+				isChangeSection={isChangeSection}
 			/>
 		)
 	}
 
-	function handleDragStart(event) {
+	const handleDragStart = useCallback((event) => {
 		setActiveId(event.active.id);
-	}
+	}, []);
 
-	function moveSection(event) {
+	const moveSection = useCallback((event) => {
 		setActiveId(null);
 
 		const { active, over } = event;
@@ -46,10 +47,22 @@ export default function Sections({ sections, setSections, tasks, setTasks, isMou
 				}))
 			})
 		}
+	}, []);
+
+	function changeSection(event) {
+		const { active, over } = event;
+		setTasks(prevTasks => prevTasks.map(el => 
+			el.id === event.active.id
+			? { ...el, section: event.over.id }
+			: el
+		));
 	}
 
 	return (
-		<DndContext onDragStart={handleDragStart} onDragEnd={moveSection}>
+		<DndContext 
+			onDragStart={isChangeSection ? () => {} : handleDragStart} 
+			onDragEnd={isChangeSection ? changeSection : moveSection}
+		>
 			<SortableContext items={sections.map(section => section.id)}>
 				<SectionsMarkup sections={sections} />
 			</SortableContext>
@@ -63,6 +76,7 @@ export default function Sections({ sections, setSections, tasks, setTasks, isMou
 						hideTasks={hideTasks}
 						setHideTasks={setHideTasks}
 						isMountTask={isMountTask}
+						isChangeSection={isChangeSection}
 					/>
 				</DragOverlay>
 			}
