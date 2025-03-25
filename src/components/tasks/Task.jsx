@@ -11,11 +11,22 @@ import Tasks from "./Tasks"
 
 export default function Task({ task, section, tasks, setTasks, spaceLevel, activeId, draggingLevel, setDraggingLevel, isMountTask, isChangeSection }) {
 
+	function findSection(tempTask) {
+		while (tempTask.parent) {
+			tempTask = tasks.find(t => t.id === tempTask.parent);
+		}
+		return tempTask.section;
+	}
+
 	const TaskMarkup = ({ task, isOver }) => {
 		function unindentTask() {
 			setTasks(prevTasks => prevTasks.map(el =>
 				el.id === task.id
-				? { ...el, parent: prevTasks.find(t => t.id === task.parent).parent || null } 
+				? { 
+					...el, 
+					parent: prevTasks.find(t => t.id === task.parent).parent || null,
+					section: prevTasks.find(t => t.id === task.parent).section || null
+				} 
 				: el
 			));
 		}
@@ -25,7 +36,8 @@ export default function Task({ task, section, tasks, setTasks, spaceLevel, activ
 				el.id === task.id
 				? {
 					...el,
-					parent: null
+					parent: null,
+					section: findSection(task)
 				}
 				: el
 			));
@@ -73,7 +85,7 @@ export default function Task({ task, section, tasks, setTasks, spaceLevel, activ
 				{!(draggingLevel && draggingLevel >= spaceLevel) && 
 					<Tasks 
 						parent={task} 
-						section={section} 
+						section={null} 
 						tasks={tasks} 
 						setTasks={setTasks} 
 						spaceLevel={spaceLevel + 1}

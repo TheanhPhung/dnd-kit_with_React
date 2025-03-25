@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 
 import { DndContext, DragOverlay, useDndMonitor } from "@dnd-kit/core"
 import { SortableContext, arrayMove } from "@dnd-kit/sortable"
@@ -7,10 +7,16 @@ import { CSS } from "@dnd-kit/utilities"
 import Task from "./Task"
 
 export default function Tasks({ parent, section, tasks, setTasks, spaceLevel, isMountTask, isChangeSection }) {
-	const [childTasks, setChildTasks] = useState([
-		...(tasks || []).filter(task => task.section === section.id && (parent ? task.parent === parent.id : !task.parent))
-	].sort((a, b) => a.order - b.order));
 
+	const childTasks = useMemo(() => {
+		return (tasks || [])
+			.filter(task => 
+				(section ? task.section === section.id : task.section === null) &&
+				(parent ? task.parent === parent.id : task.parent === null)
+			)
+			.sort((a, b) => a.order - b.order);
+	}, [tasks, section, parent]);	
+	
 	const [activeId, setActiveId] = useState(null);
 	const [draggingLevel, setDraggingLevel] = useState(null);
 
